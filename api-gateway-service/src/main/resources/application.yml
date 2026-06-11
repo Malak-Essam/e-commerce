@@ -2,6 +2,18 @@ spring:
   application:
     name: api-gateway-service
 
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/api/products/**
+
 server:
   port: 8080
 
@@ -11,3 +23,13 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  level:
+    com.ecommerce.gateway: DEBUG
