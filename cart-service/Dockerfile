@@ -3,7 +3,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY shared-library shared-library
 COPY cart-service cart-service
-RUN mvn clean package -pl cart-service -DskipTests
+RUN mvn clean package -pl cart-service -am -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
