@@ -131,6 +131,30 @@ services:
     networks:
       - ecommerce-network
 
+  inventory-service:
+    build:
+      context: .
+      dockerfile: inventory-service/Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      EUREKA_URI: http://eureka-server-service:8761/eureka/
+      INSTANCE_HOSTNAME: inventory-service
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      eureka-server-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ecommerce-network
+
 volumes:
   rabbitmq-data:
 
