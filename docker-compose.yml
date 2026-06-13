@@ -1,4 +1,23 @@
 services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - ecommerce-network
+
   eureka-server-service:
     build:
       context: .
@@ -25,8 +44,11 @@ services:
     environment:
       EUREKA_URI: http://eureka-server-service:8761/eureka/
       INSTANCE_HOSTNAME: api-gateway-service
+      SPRING_RABBITMQ_HOST: rabbitmq
     depends_on:
       eureka-server-service:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
@@ -46,8 +68,11 @@ services:
     environment:
       EUREKA_URI: http://eureka-server-service:8761/eureka/
       INSTANCE_HOSTNAME: user-service
+      SPRING_RABBITMQ_HOST: rabbitmq
     depends_on:
       eureka-server-service:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
@@ -67,8 +92,11 @@ services:
     environment:
       EUREKA_URI: http://eureka-server-service:8761/eureka/
       INSTANCE_HOSTNAME: product-service
+      SPRING_RABBITMQ_HOST: rabbitmq
     depends_on:
       eureka-server-service:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
@@ -78,6 +106,9 @@ services:
       start_period: 30s
     networks:
       - ecommerce-network
+
+volumes:
+  rabbitmq-data:
 
 networks:
   ecommerce-network:

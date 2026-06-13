@@ -26,6 +26,36 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
 
+spring:
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+
+  cloud:
+    stream:
+      rabbit:
+        default:
+          consumer:
+            auto-bind-dlq: true
+            republish-to-dlq: true
+          producer:
+            auto-bind-dlq: true
+      bindings:
+        orderCreated-out-0:
+          destination: order.events
+        orderConfirmed-out-0:
+          destination: order.events
+        orderFailed-out-0:
+          destination: order.events
+        paymentProcessed-out-0:
+          destination: payment.events
+        inventoryReserved-out-0:
+          destination: inventory.events
+        inventoryReservationFailed-out-0:
+          destination: inventory.events
+
 management:
   endpoints:
     web:
