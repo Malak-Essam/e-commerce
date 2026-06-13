@@ -1,6 +1,14 @@
 spring:
   application:
     name: cart-service
+  cloud:
+    stream:
+      bindings:
+        orderCreated-in-0:
+          destination: order.events
+          group: cart-service
+      function:
+        definition: orderCreated
 
 server:
   port: 8083
