@@ -1,5 +1,6 @@
 package com.ecommerce.user.controller;
 
+import com.ecommerce.user.dto.FavoriteProductsResponse;
 import com.ecommerce.user.dto.UserResponse;
 import com.ecommerce.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,5 +26,11 @@ public class UserController {
     public ResponseEntity<Map<String, Boolean>> checkEmail(@PathVariable String email) {
         boolean exists = userService.emailExists(email);
         return ResponseEntity.ok(Map.of("exists", exists));
+    }
+
+    @GetMapping("/{userId}/favorites")
+    public ResponseEntity<FavoriteProductsResponse> getFavoriteProducts(@PathVariable Long userId) {
+        FavoriteProductsResponse response = userService.getFavoriteProducts(userId);
+        return ResponseEntity.ok(response);
     }
 }

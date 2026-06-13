@@ -25,9 +25,17 @@ spring:
 server:
   port: 8082
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
 eureka:
+  instance:
+    hostname: ${INSTANCE_HOSTNAME:localhost}
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
     fetch-registry: true
     register-with-eureka: true

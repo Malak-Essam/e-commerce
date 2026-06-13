@@ -1,0 +1,84 @@
+services:
+  eureka-server-service:
+    build:
+      context: .
+      dockerfile: eureka-server-service/Dockerfile
+    ports:
+      - "8761:8761"
+    environment:
+      INSTANCE_HOSTNAME: eureka-server-service
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ecommerce-network
+
+  api-gateway-service:
+    build:
+      context: .
+      dockerfile: api-gateway-service/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_URI: http://eureka-server-service:8761/eureka/
+      INSTANCE_HOSTNAME: api-gateway-service
+    depends_on:
+      eureka-server-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ecommerce-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      EUREKA_URI: http://eureka-server-service:8761/eureka/
+      INSTANCE_HOSTNAME: user-service
+    depends_on:
+      eureka-server-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ecommerce-network
+
+  product-service:
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      EUREKA_URI: http://eureka-server-service:8761/eureka/
+      INSTANCE_HOSTNAME: product-service
+    depends_on:
+      eureka-server-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ecommerce-network
+
+networks:
+  ecommerce-network:
+    driver: bridge
