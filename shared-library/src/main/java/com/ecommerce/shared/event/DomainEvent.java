@@ -17,7 +17,10 @@ import java.util.UUID;
     @JsonSubTypes.Type(value = OrderFailedEvent.class, name = "OrderFailed"),
     @JsonSubTypes.Type(value = PaymentProcessedEvent.class, name = "PaymentProcessed"),
     @JsonSubTypes.Type(value = InventoryReservedEvent.class, name = "InventoryReserved"),
-    @JsonSubTypes.Type(value = InventoryReservationFailedEvent.class, name = "InventoryReservationFailed")
+    @JsonSubTypes.Type(value = InventoryReservationFailedEvent.class, name = "InventoryReservationFailed"),
+    @JsonSubTypes.Type(value = InventoryConfirmedEvent.class, name = "InventoryConfirmed"),
+    @JsonSubTypes.Type(value = InventoryReservationCancelledEvent.class, name = "InventoryReservationCancelled"),
+    @JsonSubTypes.Type(value = OrderCancelledEvent.class, name = "OrderCancelled")
 })
 public abstract class DomainEvent implements Serializable {
 

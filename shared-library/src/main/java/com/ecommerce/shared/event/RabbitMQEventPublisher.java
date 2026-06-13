@@ -31,6 +31,9 @@ public class RabbitMQEventPublisher implements EventPublisher {
         if (event instanceof PaymentProcessedEvent) return "paymentProcessed-out-0";
         if (event instanceof InventoryReservedEvent) return "inventoryReserved-out-0";
         if (event instanceof InventoryReservationFailedEvent) return "inventoryReservationFailed-out-0";
+        if (event instanceof InventoryConfirmedEvent) return "inventoryConfirmed-out-0";
+        if (event instanceof InventoryReservationCancelledEvent) return "inventoryReservationCancelled-out-0";
+        if (event instanceof OrderCancelledEvent) return "orderCancelled-out-0";
         throw new IllegalArgumentException("Unknown event type: " + event.getClass().getName());
     }
 }

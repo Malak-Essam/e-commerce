@@ -16,6 +16,9 @@ public final class EventConstants {
     public static final String PAYMENT_PROCESSED_QUEUE = "payment.processed.queue";
     public static final String INVENTORY_RESERVED_QUEUE = "inventory.reserved.queue";
     public static final String INVENTORY_RESERVATION_FAILED_QUEUE = "inventory.reservation.failed.queue";
+    public static final String INVENTORY_CONFIRMED_QUEUE = "inventory.confirmed.queue";
+    public static final String INVENTORY_CANCELLED_QUEUE = "inventory.cancelled.queue";
+    public static final String ORDER_CANCELLED_QUEUE = "order.cancelled.queue";
 
     public static final String DLQ_SUFFIX = ".dlq";
 }
