@@ -1,25 +1,25 @@
 package com.ecommerce.shared.event;
 
 public class InventoryReservationCancelledEvent extends DomainEvent {
-    private String productId;
+    private Long productId;
     private String reservationId;
     private String orderId;
 
     public InventoryReservationCancelledEvent() {
     }
 
-    public InventoryReservationCancelledEvent(String aggregateId, String productId, String reservationId, String orderId) {
+    public InventoryReservationCancelledEvent(String aggregateId, Long productId, String reservationId, String orderId) {
         super(aggregateId);
         this.productId = productId;
         this.reservationId = reservationId;
         this.orderId = orderId;
     }
 
-    public String getProductId() {
+    public Long getProductId() {
         return productId;
     }
 
-    public void setProductId(String productId) {
+    public void setProductId(Long productId) {
         this.productId = productId;
     }
 

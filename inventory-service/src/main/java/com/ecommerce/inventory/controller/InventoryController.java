@@ -51,11 +51,12 @@ public class InventoryController {
     @PostMapping("/products/{productId}/confirm")
     @Operation(summary = "Confirm a reservation")
     @ApiResponse(responseCode = "200", description = "Reservation confirmed")
-    @ApiResponse(responseCode = "400", description = "Invalid reservation status")
+    @ApiResponse(responseCode = "400", description = "Invalid reservation status or product mismatch")
     @ApiResponse(responseCode = "404", description = "Reservation not found")
     public ResponseEntity<Void> confirmReservation(
             @PathVariable String productId,
             @Valid @RequestBody ConfirmRequest request) {
+        inventoryService.validateReservationBelongsToProduct(request.getReservationId(), productId);
         inventoryService.confirmReservation(request.getReservationId());
         return ResponseEntity.ok().build();
     }
@@ -63,11 +64,12 @@ public class InventoryController {
     @PostMapping("/products/{productId}/cancel")
     @Operation(summary = "Cancel a reservation")
     @ApiResponse(responseCode = "200", description = "Reservation cancelled")
-    @ApiResponse(responseCode = "400", description = "Invalid reservation status")
+    @ApiResponse(responseCode = "400", description = "Invalid reservation status or product mismatch")
     @ApiResponse(responseCode = "404", description = "Reservation not found")
     public ResponseEntity<Void> cancelReservation(
             @PathVariable String productId,
             @Valid @RequestBody CancelRequest request) {
+        inventoryService.validateReservationBelongsToProduct(request.getReservationId(), productId);
         inventoryService.cancelReservation(request.getReservationId());
         return ResponseEntity.ok().build();
     }

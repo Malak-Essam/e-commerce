@@ -42,15 +42,15 @@ class InventoryServiceTest {
     @Test
     void checkStock_shouldReturnCorrectStockDetails() {
         Inventory inventory = Inventory.builder()
-                .productId("prod1")
+                .productId("1")
                 .totalStock(10)
                 .reservedStock(3)
                 .build();
-        when(inventoryRepository.findByProductId("prod1")).thenReturn(Optional.of(inventory));
+        when(inventoryRepository.findByProductId("1")).thenReturn(Optional.of(inventory));
 
-        InventoryResponse response = inventoryService.checkStock("prod1");
+        InventoryResponse response = inventoryService.checkStock("1");
 
-        assertThat(response.getProductId()).isEqualTo("prod1");
+        assertThat(response.getProductId()).isEqualTo("1");
         assertThat(response.getTotalStock()).isEqualTo(10);
         assertThat(response.getReservedStock()).isEqualTo(3);
         assertThat(response.getAvailableStock()).isEqualTo(7);
@@ -68,13 +68,13 @@ class InventoryServiceTest {
     @Test
     void getAvailableQuantity_shouldReturnCorrectQuantity() {
         Inventory inventory = Inventory.builder()
-                .productId("prod1")
+                .productId("1")
                 .totalStock(10)
                 .reservedStock(3)
                 .build();
-        when(inventoryRepository.findByProductId("prod1")).thenReturn(Optional.of(inventory));
+        when(inventoryRepository.findByProductId("1")).thenReturn(Optional.of(inventory));
 
-        int quantity = inventoryService.getAvailableQuantity("prod1");
+        int quantity = inventoryService.getAvailableQuantity("1");
 
         assertThat(quantity).isEqualTo(7);
     }
@@ -165,19 +165,19 @@ class InventoryServiceTest {
     @Test
     void confirmReservation_shouldConfirmPendingReservation() {
         Inventory inventory = Inventory.builder()
-                .productId("prod1")
+                .productId("1")
                 .totalStock(10)
                 .reservedStock(3)
                 .build();
         InventoryReservation reservation = InventoryReservation.builder()
                 .reservationId("res-1")
-                .productId("prod1")
+                .productId("1")
                 .orderId("order-1")
                 .quantity(3)
                 .status(ReservationStatus.PENDING)
                 .build();
         when(reservationRepository.findByReservationId("res-1")).thenReturn(Optional.of(reservation));
-        when(inventoryRepository.findByProductId("prod1")).thenReturn(Optional.of(inventory));
+        when(inventoryRepository.findByProductId("1")).thenReturn(Optional.of(inventory));
         when(inventoryRepository.save(any(Inventory.class))).thenAnswer(inv -> inv.getArgument(0));
         when(reservationRepository.save(any(InventoryReservation.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -190,8 +190,8 @@ class InventoryServiceTest {
         ArgumentCaptor<InventoryConfirmedEvent> captor = ArgumentCaptor.forClass(InventoryConfirmedEvent.class);
         verify(eventPublisher).publish(captor.capture());
         InventoryConfirmedEvent event = captor.getValue();
-        assertThat(event.getAggregateId()).isEqualTo("prod1");
-        assertThat(event.getProductId()).isEqualTo("prod1");
+        assertThat(event.getAggregateId()).isEqualTo("1");
+        assertThat(event.getProductId()).isEqualTo(1L);
         assertThat(event.getReservationId()).isEqualTo("res-1");
         assertThat(event.getOrderId()).isEqualTo("order-1");
     }
@@ -213,19 +213,19 @@ class InventoryServiceTest {
     @Test
     void cancelReservation_shouldCancelPendingReservation() {
         Inventory inventory = Inventory.builder()
-                .productId("prod1")
+                .productId("1")
                 .totalStock(10)
                 .reservedStock(3)
                 .build();
         InventoryReservation reservation = InventoryReservation.builder()
                 .reservationId("res-1")
-                .productId("prod1")
+                .productId("1")
                 .orderId("order-1")
                 .quantity(3)
                 .status(ReservationStatus.PENDING)
                 .build();
         when(reservationRepository.findByReservationId("res-1")).thenReturn(Optional.of(reservation));
-        when(inventoryRepository.findByProductId("prod1")).thenReturn(Optional.of(inventory));
+        when(inventoryRepository.findByProductId("1")).thenReturn(Optional.of(inventory));
         when(inventoryRepository.save(any(Inventory.class))).thenAnswer(inv -> inv.getArgument(0));
         when(reservationRepository.save(any(InventoryReservation.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -237,8 +237,8 @@ class InventoryServiceTest {
         ArgumentCaptor<InventoryReservationCancelledEvent> captor = ArgumentCaptor.forClass(InventoryReservationCancelledEvent.class);
         verify(eventPublisher).publish(captor.capture());
         InventoryReservationCancelledEvent event = captor.getValue();
-        assertThat(event.getAggregateId()).isEqualTo("prod1");
-        assertThat(event.getProductId()).isEqualTo("prod1");
+        assertThat(event.getAggregateId()).isEqualTo("1");
+        assertThat(event.getProductId()).isEqualTo(1L);
         assertThat(event.getReservationId()).isEqualTo("res-1");
         assertThat(event.getOrderId()).isEqualTo("order-1");
     }
@@ -260,20 +260,20 @@ class InventoryServiceTest {
     @Test
     void cancelPendingReservationsByOrderId_shouldCancelAllPending() {
         Inventory inventory = Inventory.builder()
-                .productId("prod1")
+                .productId("1")
                 .totalStock(10)
                 .reservedStock(5)
                 .build();
         InventoryReservation pending1 = InventoryReservation.builder()
                 .reservationId("res-1")
-                .productId("prod1")
+                .productId("1")
                 .orderId("order-1")
                 .quantity(2)
                 .status(ReservationStatus.PENDING)
                 .build();
         InventoryReservation pending2 = InventoryReservation.builder()
                 .reservationId("res-2")
-                .productId("prod1")
+                .productId("1")
                 .orderId("order-1")
                 .quantity(3)
                 .status(ReservationStatus.PENDING)
@@ -281,7 +281,7 @@ class InventoryServiceTest {
         when(reservationRepository.findByOrderId("order-1")).thenReturn(List.of(pending1, pending2));
         when(reservationRepository.findByReservationId("res-1")).thenReturn(Optional.of(pending1));
         when(reservationRepository.findByReservationId("res-2")).thenReturn(Optional.of(pending2));
-        when(inventoryRepository.findByProductId("prod1")).thenReturn(Optional.of(inventory));
+        when(inventoryRepository.findByProductId("1")).thenReturn(Optional.of(inventory));
         when(inventoryRepository.save(any(Inventory.class))).thenAnswer(inv -> inv.getArgument(0));
         when(reservationRepository.save(any(InventoryReservation.class))).thenAnswer(inv -> inv.getArgument(0));
 

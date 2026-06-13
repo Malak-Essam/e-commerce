@@ -81,53 +81,57 @@ public class InventoryService {
 
     @Transactional
     public void confirmReservation(String reservationId) {
-        InventoryReservation reservation = findReservationOrThrow(reservationId);
+        retryOnLockFailureVoid(() -> {
+            InventoryReservation reservation = findReservationOrThrow(reservationId);
 
-        if (reservation.getStatus() != ReservationStatus.PENDING) {
-            throw new InvalidReservationStatusException(
-                    reservationId, reservation.getStatus().name(), ReservationStatus.PENDING.name());
-        }
+            if (reservation.getStatus() != ReservationStatus.PENDING) {
+                throw new InvalidReservationStatusException(
+                        reservationId, reservation.getStatus().name(), ReservationStatus.PENDING.name());
+            }
 
-        Inventory inventory = findInventoryOrThrow(reservation.getProductId());
+            Inventory inventory = findInventoryOrThrow(reservation.getProductId());
 
-        reservation.setStatus(ReservationStatus.CONFIRMED);
-        inventory.setTotalStock(inventory.getTotalStock() - reservation.getQuantity());
-        inventory.setReservedStock(inventory.getReservedStock() - reservation.getQuantity());
+            reservation.setStatus(ReservationStatus.CONFIRMED);
+            inventory.setTotalStock(inventory.getTotalStock() - reservation.getQuantity());
+            inventory.setReservedStock(inventory.getReservedStock() - reservation.getQuantity());
 
-        inventoryRepository.save(inventory);
-        reservationRepository.save(reservation);
+            inventoryRepository.save(inventory);
+            reservationRepository.save(reservation);
 
-        eventPublisher.publish(new InventoryConfirmedEvent(
-                reservation.getProductId(), reservation.getProductId(),
-                reservation.getReservationId(), reservation.getOrderId()));
+            eventPublisher.publish(new InventoryConfirmedEvent(
+                    reservation.getProductId(), Long.valueOf(reservation.getProductId()),
+                    reservation.getReservationId(), reservation.getOrderId()));
 
-        log.info("Confirmed reservation {} for product {} (order: {})",
-                reservationId, reservation.getProductId(), reservation.getOrderId());
+            log.info("Confirmed reservation {} for product {} (order: {})",
+                    reservationId, reservation.getProductId(), reservation.getOrderId());
+        });
     }
 
     @Transactional
     public void cancelReservation(String reservationId) {
-        InventoryReservation reservation = findReservationOrThrow(reservationId);
+        retryOnLockFailureVoid(() -> {
+            InventoryReservation reservation = findReservationOrThrow(reservationId);
 
-        if (reservation.getStatus() != ReservationStatus.PENDING) {
-            throw new InvalidReservationStatusException(
-                    reservationId, reservation.getStatus().name(), ReservationStatus.PENDING.name());
-        }
+            if (reservation.getStatus() != ReservationStatus.PENDING) {
+                throw new InvalidReservationStatusException(
+                        reservationId, reservation.getStatus().name(), ReservationStatus.PENDING.name());
+            }
 
-        Inventory inventory = findInventoryOrThrow(reservation.getProductId());
+            Inventory inventory = findInventoryOrThrow(reservation.getProductId());
 
-        reservation.setStatus(ReservationStatus.CANCELLED);
-        inventory.setReservedStock(inventory.getReservedStock() - reservation.getQuantity());
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            inventory.setReservedStock(inventory.getReservedStock() - reservation.getQuantity());
 
-        inventoryRepository.save(inventory);
-        reservationRepository.save(reservation);
+            inventoryRepository.save(inventory);
+            reservationRepository.save(reservation);
 
-        eventPublisher.publish(new InventoryReservationCancelledEvent(
-                reservation.getProductId(), reservation.getProductId(),
-                reservation.getReservationId(), reservation.getOrderId()));
+            eventPublisher.publish(new InventoryReservationCancelledEvent(
+                    reservation.getProductId(), Long.valueOf(reservation.getProductId()),
+                    reservation.getReservationId(), reservation.getOrderId()));
 
-        log.info("Cancelled reservation {} for product {} (order: {})",
-                reservationId, reservation.getProductId(), reservation.getOrderId());
+            log.info("Cancelled reservation {} for product {} (order: {})",
+                    reservationId, reservation.getProductId(), reservation.getOrderId());
+        });
     }
 
     @Transactional
@@ -135,6 +139,14 @@ public class InventoryService {
         reservationRepository.findByOrderId(orderId).stream()
                 .filter(r -> r.getStatus() == ReservationStatus.PENDING)
                 .forEach(r -> cancelReservation(r.getReservationId()));
+    }
+
+    public void validateReservationBelongsToProduct(String reservationId, String productId) {
+        InventoryReservation reservation = findReservationOrThrow(reservationId);
+        if (!reservation.getProductId().equals(productId)) {
+            throw new IllegalArgumentException(
+                    "Reservation " + reservationId + " does not belong to product " + productId);
+        }
     }
 
     private Inventory findInventoryOrThrow(String productId) {
@@ -179,8 +191,36 @@ public class InventoryService {
                 "Failed after " + MAX_RETRIES + " retries due to lock contention");
     }
 
+    private void retryOnLockFailureVoid(VoidLockAction action) {
+        Exception lastException = null;
+        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                action.execute();
+                return;
+            } catch (OptimisticLockingFailureException e) {
+                lastException = e;
+                log.warn("Optimistic lock failure in state change (attempt {}/{})", attempt, MAX_RETRIES);
+                if (attempt < MAX_RETRIES) {
+                    try {
+                        Thread.sleep(100L * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new ReservationConflictException("unknown", "Retry interrupted");
+                    }
+                }
+            }
+        }
+        throw new ReservationConflictException("unknown",
+                "Failed after " + MAX_RETRIES + " retries due to lock contention");
+    }
+
     @FunctionalInterface
     private interface LockAction {
         ReserveResponse execute();
+    }
+
+    @FunctionalInterface
+    private interface VoidLockAction {
+        void execute();
     }
 }
