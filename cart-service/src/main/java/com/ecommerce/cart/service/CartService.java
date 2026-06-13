@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -26,17 +27,24 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final ProductServiceClient productServiceClient;
+    private final ConcurrentHashMap<String, Object> locks = new ConcurrentHashMap<>();
+
+    private Object getLock(String userId) {
+        return locks.computeIfAbsent(userId, k -> new Object());
+    }
 
     public CartResponse getOrCreateCart(String userId) {
-        return toCartResponse(cartRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    Cart newCart = Cart.builder()
-                            .userId(userId)
-                            .createdAt(Instant.now())
-                            .lastModifiedAt(Instant.now())
-                            .build();
-                    return cartRepository.save(newCart);
-                }));
+        synchronized (getLock(userId)) {
+            return toCartResponse(cartRepository.findByUserId(userId)
+                    .orElseGet(() -> {
+                        Cart newCart = Cart.builder()
+                                .userId(userId)
+                                .createdAt(Instant.now())
+                                .lastModifiedAt(Instant.now())
+                                .build();
+                        return cartRepository.save(newCart);
+                    }));
+        }
     }
 
     public CartResponse addItem(String userId, Long productId, int quantity) {
@@ -47,7 +55,7 @@ public class CartService {
         ProductResponse product = productServiceClient.getProduct(productId)
                 .orElseThrow(() -> new ProductLookupException("Product not found: " + productId));
 
-        synchronized (userId.intern()) {
+        synchronized (getLock(userId)) {
             Cart cart = cartRepository.findByUserId(userId)
                     .orElseGet(() -> {
                         Cart newCart = Cart.builder()
@@ -58,17 +66,16 @@ public class CartService {
                         return cartRepository.save(newCart);
                     });
 
-            String pid = String.valueOf(productId);
-            CartItem existingItem = cart.getItems().get(pid);
+            CartItem existingItem = cart.getItems().get(productId);
             if (existingItem != null) {
                 existingItem.setQuantity(existingItem.getQuantity() + quantity);
             } else {
                 CartItem newItem = CartItem.builder()
-                        .productId(pid)
+                        .productId(productId)
                         .quantity(quantity)
                         .price(product.getPrice())
                         .build();
-                cart.getItems().put(pid, newItem);
+                cart.getItems().put(productId, newItem);
             }
 
             recalculateTotal(cart);
@@ -78,19 +85,17 @@ public class CartService {
     }
 
     public CartResponse updateItemQuantity(String userId, Long productId, int quantity) {
-        String pid = String.valueOf(productId);
-
-        synchronized (userId.intern()) {
+        synchronized (getLock(userId)) {
             Cart cart = cartRepository.findByUserId(userId)
                     .orElseThrow(() -> new CartNotFoundException("Cart not found for user: " + userId));
 
-            CartItem item = cart.getItems().get(pid);
+            CartItem item = cart.getItems().get(productId);
             if (item == null) {
                 throw new CartItemNotFoundException("Item not found: " + productId);
             }
 
             if (quantity <= 0) {
-                cart.getItems().remove(pid);
+                cart.getItems().remove(productId);
             } else {
                 item.setQuantity(quantity);
             }
@@ -102,13 +107,11 @@ public class CartService {
     }
 
     public CartResponse removeItem(String userId, Long productId) {
-        String pid = String.valueOf(productId);
-
-        synchronized (userId.intern()) {
+        synchronized (getLock(userId)) {
             Cart cart = cartRepository.findByUserId(userId)
                     .orElseThrow(() -> new CartNotFoundException("Cart not found for user: " + userId));
 
-            CartItem removed = cart.getItems().remove(pid);
+            CartItem removed = cart.getItems().remove(productId);
             if (removed == null) {
                 throw new CartItemNotFoundException("Item not found: " + productId);
             }
@@ -120,9 +123,11 @@ public class CartService {
     }
 
     public CartResponse getCart(String userId) {
-        Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new CartNotFoundException("Cart not found for user: " + userId));
-        return toCartResponse(cart);
+        synchronized (getLock(userId)) {
+            Cart cart = cartRepository.findByUserId(userId)
+                    .orElseThrow(() -> new CartNotFoundException("Cart not found for user: " + userId));
+            return toCartResponse(cart);
+        }
     }
 
     public void clearCart(String userId) {
@@ -130,7 +135,7 @@ public class CartService {
     }
 
     public CartResponse checkout(String userId) {
-        synchronized (userId.intern()) {
+        synchronized (getLock(userId)) {
             Cart cart = cartRepository.findByUserId(userId)
                     .orElseThrow(() -> new CartNotFoundException("Cart not found for user: " + userId));
 

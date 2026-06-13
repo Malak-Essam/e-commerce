@@ -16,12 +16,16 @@ import java.util.Optional;
 @Slf4j
 public class ProductServiceClient {
 
-    private final WebClient.Builder webClientBuilder;
+    private final WebClient webClient;
+
+    public ProductServiceClient(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder.build();
+    }
 
     @Retry(name = "productService")
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductFallback")
     public Optional<ProductResponse> getProduct(Long productId) {
-        ProductResponse product = webClientBuilder.build()
+        ProductResponse product = webClient
                 .get()
                 .uri("http://product-service/api/products/{id}", productId)
                 .retrieve()

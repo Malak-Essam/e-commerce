@@ -18,7 +18,7 @@ public class Cart {
 
     private String userId;
     @Builder.Default
-    private Map<String, CartItem> items = new HashMap<>();
+    private Map<Long, CartItem> items = new HashMap<>();
     @Builder.Default
     private BigDecimal totalPrice = BigDecimal.ZERO;
     private Instant createdAt;

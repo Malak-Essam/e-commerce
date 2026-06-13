@@ -23,11 +23,10 @@ public class CartController {
 
     @PostMapping("/users/{userId}")
     @Operation(summary = "Get or create cart for user")
-    @ApiResponse(responseCode = "200", description = "Existing cart retrieved")
-    @ApiResponse(responseCode = "201", description = "New cart created")
+    @ApiResponse(responseCode = "200", description = "Cart retrieved or created")
     public ResponseEntity<CartResponse> getOrCreateCart(@PathVariable String userId) {
         CartResponse cart = cartService.getOrCreateCart(userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(cart);
+        return ResponseEntity.ok(cart);
     }
 
     @PostMapping("/users/{userId}/items")

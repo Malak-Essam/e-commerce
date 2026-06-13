@@ -58,7 +58,7 @@ class CartServiceTest {
 
         assertEquals("user1", response.getUserId());
         assertEquals(1, response.getItems().size());
-        assertEquals("1", response.getItems().getFirst().getProductId());
+        assertEquals(1L, response.getItems().getFirst().getProductId());
         assertEquals(2, response.getItems().getFirst().getQuantity());
         assertEquals(BigDecimal.TEN, response.getItems().getFirst().getPrice());
         assertEquals(new BigDecimal("20.00"), response.getTotalPrice());
@@ -77,8 +77,8 @@ class CartServiceTest {
                 .createdAt(Instant.now())
                 .lastModifiedAt(Instant.now())
                 .build();
-        existingCart.getItems().put("1", CartItem.builder()
-                .productId("1").quantity(1).price(BigDecimal.TEN).build());
+        existingCart.getItems().put(1L, CartItem.builder()
+                .productId(1L).quantity(1).price(BigDecimal.TEN).build());
 
         when(cartRepository.findByUserId(userId)).thenReturn(Optional.of(existingCart));
         when(cartRepository.save(any(Cart.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -110,8 +110,8 @@ class CartServiceTest {
                 .createdAt(Instant.now())
                 .lastModifiedAt(Instant.now())
                 .build();
-        cart.getItems().put("1", CartItem.builder().productId("1").quantity(2).price(BigDecimal.TEN).build());
-        cart.getItems().put("2", CartItem.builder().productId("2").quantity(1).price(new BigDecimal("5.00")).build());
+        cart.getItems().put(1L, CartItem.builder().productId(1L).quantity(2).price(BigDecimal.TEN).build());
+        cart.getItems().put(2L, CartItem.builder().productId(2L).quantity(1).price(new BigDecimal("5.00")).build());
         cart.setTotalPrice(new BigDecimal("25.00"));
 
         when(cartRepository.findByUserId(userId)).thenReturn(Optional.of(cart));
@@ -120,7 +120,7 @@ class CartServiceTest {
         var response = cartService.removeItem(userId, 1L);
 
         assertEquals(1, response.getItems().size());
-        assertEquals("2", response.getItems().getFirst().getProductId());
+        assertEquals(2L, response.getItems().getFirst().getProductId());
         assertEquals(new BigDecimal("5.00"), response.getTotalPrice());
     }
 
@@ -142,7 +142,7 @@ class CartServiceTest {
                 .createdAt(Instant.now())
                 .lastModifiedAt(Instant.now())
                 .build();
-        cart.getItems().put("1", CartItem.builder().productId("1").quantity(2).price(BigDecimal.TEN).build());
+        cart.getItems().put(1L, CartItem.builder().productId(1L).quantity(2).price(BigDecimal.TEN).build());
 
         when(cartRepository.findByUserId(userId)).thenReturn(Optional.of(cart));
         when(cartRepository.save(any(Cart.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -161,7 +161,7 @@ class CartServiceTest {
                 .createdAt(Instant.now())
                 .lastModifiedAt(Instant.now())
                 .build();
-        cart.getItems().put("1", CartItem.builder().productId("1").quantity(2).price(BigDecimal.TEN).build());
+        cart.getItems().put(1L, CartItem.builder().productId(1L).quantity(2).price(BigDecimal.TEN).build());
 
         when(cartRepository.findByUserId(userId)).thenReturn(Optional.of(cart));
         when(cartRepository.save(any(Cart.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -180,7 +180,7 @@ class CartServiceTest {
                 .createdAt(Instant.now())
                 .lastModifiedAt(Instant.now())
                 .build();
-        cart.getItems().put("1", CartItem.builder().productId("1").quantity(1).price(BigDecimal.TEN).build());
+        cart.getItems().put(1L, CartItem.builder().productId(1L).quantity(1).price(BigDecimal.TEN).build());
 
         when(cartRepository.findByUserId(userId)).thenReturn(Optional.of(cart));
 
@@ -211,7 +211,7 @@ class CartServiceTest {
                 .createdAt(Instant.now())
                 .lastModifiedAt(Instant.now())
                 .build();
-        cart.getItems().put("1", CartItem.builder().productId("1").quantity(1).price(BigDecimal.TEN).build());
+        cart.getItems().put(1L, CartItem.builder().productId(1L).quantity(1).price(BigDecimal.TEN).build());
 
         when(cartRepository.findByUserId(userId)).thenReturn(Optional.of(cart));
 
@@ -313,7 +313,7 @@ class CartServiceTest {
         executor.shutdown();
 
         assertNull(exception.get());
-        assertEquals(threadCount, cart.getItems().get("1").getQuantity());
+        assertEquals(threadCount, cart.getItems().get(1L).getQuantity());
         assertEquals(new BigDecimal("100.00"), cart.getTotalPrice());
     }
 }

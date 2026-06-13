@@ -14,7 +14,7 @@ import java.util.Objects;
 @Builder
 public class CartItem {
 
-    private String productId;
+    private Long productId;
     private int quantity;
     private BigDecimal price;
 

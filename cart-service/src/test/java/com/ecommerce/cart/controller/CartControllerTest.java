@@ -7,7 +7,6 @@ import com.ecommerce.cart.exception.CartNotFoundException;
 import com.ecommerce.cart.exception.GlobalExceptionHandler;
 import com.ecommerce.cart.exception.ProductLookupException;
 import com.ecommerce.cart.service.CartService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +22,6 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -39,8 +37,6 @@ class CartControllerTest {
     @InjectMocks
     private CartController cartController;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(cartController)
@@ -49,7 +45,7 @@ class CartControllerTest {
     }
 
     @Test
-    void getOrCreateCart_shouldReturn201() throws Exception {
+    void getOrCreateCart_shouldReturn200() throws Exception {
         CartResponse response = CartResponse.builder()
                 .userId("user1")
                 .items(List.of())
@@ -61,7 +57,7 @@ class CartControllerTest {
         when(cartService.getOrCreateCart("user1")).thenReturn(response);
 
         mockMvc.perform(post("/api/carts/users/{userId}", "user1"))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value("user1"));
     }
 
@@ -70,7 +66,7 @@ class CartControllerTest {
         CartResponse response = CartResponse.builder()
                 .userId("user1")
                 .items(List.of(CartItemResponse.builder()
-                        .productId("1").quantity(2).price(BigDecimal.TEN)
+                        .productId(1L).quantity(2).price(BigDecimal.TEN)
                         .subtotal(new BigDecimal("20.00")).build()))
                 .totalPrice(new BigDecimal("20.00"))
                 .createdAt(Instant.now())
@@ -83,7 +79,7 @@ class CartControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"productId\": 1, \"quantity\": 2}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].productId").value("1"))
+                .andExpect(jsonPath("$.items[0].productId").value(1))
                 .andExpect(jsonPath("$.totalPrice").value(20.00));
     }
 
@@ -111,7 +107,7 @@ class CartControllerTest {
         CartResponse response = CartResponse.builder()
                 .userId("user1")
                 .items(List.of(CartItemResponse.builder()
-                        .productId("1").quantity(5).price(BigDecimal.TEN)
+                        .productId(1L).quantity(5).price(BigDecimal.TEN)
                         .subtotal(new BigDecimal("50.00")).build()))
                 .totalPrice(new BigDecimal("50.00"))
                 .createdAt(Instant.now())
@@ -190,7 +186,7 @@ class CartControllerTest {
         CartResponse response = CartResponse.builder()
                 .userId("user1")
                 .items(List.of(CartItemResponse.builder()
-                        .productId("1").quantity(1).price(BigDecimal.TEN)
+                        .productId(1L).quantity(1).price(BigDecimal.TEN)
                         .subtotal(BigDecimal.TEN).build()))
                 .totalPrice(BigDecimal.TEN)
                 .createdAt(Instant.now())
