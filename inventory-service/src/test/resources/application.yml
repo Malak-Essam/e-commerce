@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  cloud:
+    stream:
+      bindings:
+        inventoryReserved-out-0:
+          destination: inventory.events
+        inventoryReservationFailed-out-0:
+          destination: inventory.events
+        inventoryConfirmed-out-0:
+          destination: inventory.events
+        inventoryReservationCancelled-out-0:
+          destination: inventory.events
+        orderCancelled-in-0:
+          destination: order.events
+          group: inventory-service
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
