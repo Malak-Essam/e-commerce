@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: cart-service
+
+server:
+  port: 8083
+
+eureka:
+  instance:
+    hostname: ${INSTANCE_HOSTNAME:localhost}
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      productService:
+        sliding-window-size: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 2s
+        slow-call-rate-threshold: 50
+  retry:
+    instances:
+      productService:
+        max-attempts: 3
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 2
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

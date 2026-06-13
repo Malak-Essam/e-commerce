@@ -18,6 +18,7 @@
         <module>product-service</module>
         <module>eureka-server-service</module>
         <module>shared-library</module>
+        <module>cart-service</module>
     </modules>
 
     <properties>
