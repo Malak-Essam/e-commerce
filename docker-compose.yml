@@ -155,6 +155,54 @@ services:
     networks:
       - ecommerce-network
 
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      EUREKA_URI: http://eureka-server-service:8761/eureka/
+      INSTANCE_HOSTNAME: order-service
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      eureka-server-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8085/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ecommerce-network
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: payment-service/Dockerfile
+    ports:
+      - "8086:8086"
+    environment:
+      EUREKA_URI: http://eureka-server-service:8761/eureka/
+      INSTANCE_HOSTNAME: payment-service
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      eureka-server-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8086/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ecommerce-network
+
 volumes:
   rabbitmq-data:
 
