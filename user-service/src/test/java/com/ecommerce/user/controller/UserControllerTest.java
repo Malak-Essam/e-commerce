@@ -77,4 +77,26 @@ class UserControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("User not found with id: 99"));
     }
+
+    @Test
+    void checkEmail_ShouldReturn200_WhenEmailExists() throws Exception {
+        when(userService.emailExists("existing@example.com")).thenReturn(true);
+
+        mockMvc.perform(get("/api/users/check-email")
+                        .param("email", "existing@example.com")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.exists").value(true));
+    }
+
+    @Test
+    void checkEmail_ShouldReturn200_WhenEmailNotExists() throws Exception {
+        when(userService.emailExists("new@example.com")).thenReturn(false);
+
+        mockMvc.perform(get("/api/users/check-email")
+                        .param("email", "new@example.com")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.exists").value(false));
+    }
 }
