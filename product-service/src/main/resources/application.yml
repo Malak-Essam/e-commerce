@@ -55,6 +55,10 @@ spring:
         inventoryReservationFailed-out-0:
           destination: inventory.events
 
+jwt:
+  internal:
+    public-key: ${JWT_INTERNAL_PUBLIC_KEY}
+
 management:
   endpoints:
     web:

@@ -41,6 +41,10 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
 
+jwt:
+  internal:
+    public-key: ${JWT_INTERNAL_PUBLIC_KEY}
+
 springdoc:
   api-docs:
     path: /api/inventory/v3/api-docs

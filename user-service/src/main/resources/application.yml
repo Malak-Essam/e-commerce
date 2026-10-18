@@ -22,16 +22,6 @@ spring:
         format_sql: true
     database-platform: org.hibernate.dialect.H2Dialect
 
-server:
-  port: 8081
-
-spring:
-  rabbitmq:
-    host: ${SPRING_RABBITMQ_HOST:localhost}
-    port: 5672
-    username: guest
-    password: guest
-
   cloud:
     stream:
       rabbit:
@@ -55,6 +45,15 @@ spring:
         inventoryReservationFailed-out-0:
           destination: inventory.events
 
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+
+server:
+  port: 8081
+
 management:
   endpoints:
     web:
@@ -71,8 +70,11 @@ eureka:
     register-with-eureka: true
 
 jwt:
-  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970337336763979244226452948404D635166546A576E5A7234753778214125442A47
-  expiration-ms: 86400000
+  external:
+    public-key: ${JWT_EXTERNAL_PUBLIC_KEY}
+    private-key: ${JWT_EXTERNAL_PRIVATE_KEY}
+  internal:
+    public-key: ${JWT_INTERNAL_PUBLIC_KEY}
 
 resilience4j:
   circuitbreaker:

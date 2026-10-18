@@ -1,30 +1,3 @@
-spring:
-  datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: false
-  cloud:
-    stream:
-      bindings:
-        inventoryReserved-out-0:
-          destination: inventory.events
-        inventoryReservationFailed-out-0:
-          destination: inventory.events
-        inventoryConfirmed-out-0:
-          destination: inventory.events
-        inventoryReservationCancelled-out-0:
-          destination: inventory.events
-        orderCancelled-in-0:
-          destination: order.events
-          group: inventory-service
-
-eureka:
-  client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
+jwt:
+  internal:
+    public-key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxlRCrNJh5OeR01yjHimwy/ewys2OMsgmtg+isWqBRfBAepLCUY8eQd8Jujjuw0AOmEMLpTTPII1QojrK1tun5qlLrj5tEELgtLhg4eFwwZAl44Wvg+BnW8Q024sInIQHRd2iGDikC3K0zGTSaYc6PGB+OW09QW7O7sWN5/rRCjulEohZhRnHjVQt/8RQqVX6Wjh/NTXz9Lqn1xQhEWyawcMo/eemDWj1xwi7Yu5sbeHTvuAE15xH479M46C7l86HJSV99IMJweEaWq4NOFzRWyXoTclLuCWDOxclG2ip31E4J8c1U2yvc15o5Varno46A4sjAomE/PnFO2HeCYtfqwIDAQAB

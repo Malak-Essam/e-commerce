@@ -69,3 +69,6 @@ logs/
 application-local.yml
 application-dev.yml
 *.pid
+
+### Local JWT keys ###
+config/keys/

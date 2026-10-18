@@ -39,6 +39,10 @@ resilience4j:
         wait-duration: 500ms
         exponential-backoff-multiplier: 2
 
+jwt:
+  internal:
+    public-key: ${JWT_INTERNAL_PUBLIC_KEY}
+
 management:
   endpoints:
     web:

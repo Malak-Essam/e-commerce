@@ -25,27 +25,11 @@ spring:
           uri: lb://order-service
           predicates:
             - Path=/api/orders/**
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payments/**
 
-server:
-  port: 8080
-
-eureka:
-  instance:
-    hostname: ${INSTANCE_HOSTNAME:localhost}
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
-    fetch-registry: true
-    register-with-eureka: true
-
-spring:
-  rabbitmq:
-    host: ${SPRING_RABBITMQ_HOST:localhost}
-    port: 5672
-    username: guest
-    password: guest
-
-  cloud:
     stream:
       rabbit:
         default:
@@ -67,6 +51,23 @@ spring:
           destination: inventory.events
         inventoryReservationFailed-out-0:
           destination: inventory.events
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+
+server:
+  port: 8080
+
+eureka:
+  instance:
+    hostname: ${INSTANCE_HOSTNAME:localhost}
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
 
 management:
   endpoints:
@@ -77,3 +78,11 @@ management:
 logging:
   level:
     com.ecommerce.gateway: DEBUG
+
+jwt:
+  external:
+    public-key: ${JWT_EXTERNAL_PUBLIC_KEY}
+  internal:
+    private-key: ${JWT_INTERNAL_PRIVATE_KEY}
+    public-key: ${JWT_INTERNAL_PUBLIC_KEY}
+    expiration-seconds: 30

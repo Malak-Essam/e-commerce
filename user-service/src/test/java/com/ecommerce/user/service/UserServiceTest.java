@@ -9,7 +9,6 @@ import com.ecommerce.user.dto.RegisterRequest;
 import com.ecommerce.user.dto.UserResponse;
 import com.ecommerce.user.entity.User;
 import com.ecommerce.user.repository.UserRepository;
-import com.ecommerce.user.security.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,7 +39,7 @@ class UserServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private JwtUtil jwtUtil;
+    private JwtEncoder jwtEncoder;
 
     @Mock
     private ProductServiceClient productServiceClient;
@@ -47,7 +48,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, passwordEncoder, jwtUtil, productServiceClient);
+        userService = new UserService(userRepository, passwordEncoder, jwtEncoder, productServiceClient);
     }
 
     @Test
@@ -120,9 +121,11 @@ class UserServiceTest {
                 .createdAt(LocalDateTime.now())
                 .build();
 
+        Jwt mockJwt = mock(Jwt.class);
+        when(mockJwt.getTokenValue()).thenReturn("jwt-token-123");
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("Password1", "encodedPassword")).thenReturn(true);
-        when(jwtUtil.generateToken(user)).thenReturn("jwt-token-123");
+        when(jwtEncoder.encode(any())).thenReturn(mockJwt);
 
         AuthResponse response = userService.login(request);
 

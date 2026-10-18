@@ -9,13 +9,17 @@ import com.ecommerce.user.dto.RegisterRequest;
 import com.ecommerce.user.dto.UserResponse;
 import com.ecommerce.user.entity.User;
 import com.ecommerce.user.repository.UserRepository;
-import com.ecommerce.user.security.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -29,7 +33,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private final JwtEncoder externalJwtEncoder;
     private final ProductServiceClient productServiceClient;
 
     public UserResponse register(RegisterRequest request) {
@@ -56,7 +60,18 @@ public class UserService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        String token = jwtUtil.generateToken(user);
+        String token = externalJwtEncoder.encode(
+                JwtEncoderParameters.from(
+                    JwtClaimsSet.builder()
+                        .subject(user.getId().toString())
+                        .claim("email", user.getEmail())
+                        .claim("roles", "ROLE_USER")
+                        .issuedAt(Instant.now())
+                        .expiresAt(Instant.now().plus(24, ChronoUnit.HOURS))
+                        .issuer("user-service")
+                        .build()
+                )
+            ).getTokenValue();
         return AuthResponse.builder()
                 .token(token)
                 .user(toUserResponse(user))
